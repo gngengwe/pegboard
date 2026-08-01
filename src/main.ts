@@ -169,8 +169,50 @@ function initSegmentLinks(): void {
   });
 }
 
+// ---------- gallery lightbox ----------
+function initGallery(): void {
+  const lightbox = document.getElementById("lightbox");
+  const img = document.getElementById("lightbox-img") as HTMLImageElement | null;
+  const caption = document.getElementById("lightbox-caption");
+  if (!lightbox || !img || !caption) return;
+
+  let lastFocused: HTMLElement | null = null;
+
+  function open(trigger: HTMLElement): void {
+    const full = trigger.dataset.full;
+    const captionText = trigger.dataset.caption ?? "";
+    if (!full || !lightbox || !img || !caption) return;
+    lastFocused = trigger;
+    img.src = full;
+    img.alt = captionText;
+    caption.textContent = captionText;
+    lightbox.removeAttribute("hidden");
+    (lightbox.querySelector(".lightbox__close") as HTMLElement | null)?.focus();
+  }
+
+  function close(): void {
+    if (!lightbox || !img) return;
+    lightbox.setAttribute("hidden", "");
+    img.src = "";
+    lastFocused?.focus();
+  }
+
+  document.querySelectorAll<HTMLButtonElement>(".gallery__item").forEach((item) => {
+    item.addEventListener("click", () => open(item));
+  });
+
+  lightbox.querySelectorAll<HTMLElement>("[data-close]").forEach((el) => {
+    el.addEventListener("click", close);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !lightbox.hasAttribute("hidden")) close();
+  });
+}
+
 initPegCanvas();
 initBoothSample();
 const pills = initPills();
 initWaitlistForm(pills.getSelected);
 initSegmentLinks();
+initGallery();

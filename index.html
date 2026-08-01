@@ -72,6 +72,33 @@
       </div>
     </section>
 
+    <!-- GALLERY -->
+    <section class="gallery" id="preview">
+      <div class="gallery__inner">
+        <p class="eyebrow" style="text-align:center;">Concept previews — not yet in the app</p>
+        <h2 class="gallery__title">See it in action</h2>
+        <p class="gallery__sub">Early visual direction for the match screen, the broadcast booth, and the receipts that back them up.</p>
+        <div class="gallery__grid">
+          <button type="button" class="gallery__item" data-full="/mockups/1-live-match.webp" data-caption="Live match — pegboard, running count, and the booth calling it in real time.">
+            <img src="/mockups/1-live-match-thumb.webp" alt="Concept mockup of the live match screen: a wooden pegboard, both players' hands, a running-count badge, and a commentary caption bar." loading="lazy" />
+            <span class="gallery__label">Live match</span>
+          </button>
+          <button type="button" class="gallery__item" data-full="/mockups/2-hand-count.webp" data-caption="Hand-count reveal — every fifteen, pair, and run highlighted as it's scored.">
+            <img src="/mockups/2-hand-count-thumb.webp" alt="Concept mockup of the hand-count reveal screen, showing a scored run and pair highlighted across five cards with a running point total." loading="lazy" />
+            <span class="gallery__label">Hand-count reveal</span>
+          </button>
+          <button type="button" class="gallery__item" data-full="/mockups/3-commentary-booth.webp" data-caption="The booth — two announcers, captioned live, over the table.">
+            <img src="/mockups/3-commentary-booth-thumb.webp" alt="Concept mockup of the two-announcer commentary booth overlay, with play-by-play and color commentator portraits and a live caption over the pegboard." loading="lazy" />
+            <span class="gallery__label">Commentary booth</span>
+          </button>
+          <button type="button" class="gallery__item" data-full="/mockups/4-fairness-receipt.webp" data-caption="Fairness receipt — the shuffle commitment and seed, verifiable after every match.">
+            <img src="/mockups/4-fairness-receipt-thumb.webp" alt="Concept mockup of the post-match fairness receipt screen, showing the final score and a verified fair shuffle ledger with commitment and seed values." loading="lazy" />
+            <span class="gallery__label">Fairness receipt</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
     <!-- WHO IT'S FOR -->
     <section class="paths" id="paths">
       <div class="paths__inner">
@@ -120,6 +147,15 @@
       </div>
     </section>
   </main>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <div class="lightbox__backdrop" data-close="true"></div>
+    <figure class="lightbox__frame">
+      <button type="button" class="lightbox__close" data-close="true" aria-label="Close preview">&times;</button>
+      <img class="lightbox__img" id="lightbox-img" src="" alt="" />
+      <figcaption class="lightbox__caption" id="lightbox-caption"></figcaption>
+    </figure>
+  </div>
 
   <footer class="footer">
     <div class="footer__inner">

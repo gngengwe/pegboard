@@ -151,6 +151,51 @@ button { font: inherit; color: inherit; }
 .beat h2 { font-size: 1.28rem; margin-bottom: 0.6rem; }
 .beat p { color: var(--ink-dim); font-size: 0.98rem; max-width: 34ch; }
 
+/* ---------- gallery ---------- */
+.gallery { padding: 5rem 1.5rem; border-top: 1px dotted var(--rule); }
+.gallery__inner { max-width: 1000px; margin: 0 auto; text-align: center; }
+.gallery__title { font-size: 1.9rem; margin: 0.6rem 0 0.7rem; }
+.gallery__sub { color: var(--ink-dim); max-width: 46ch; margin: 0 auto 2.6rem; font-size: 1rem; }
+.gallery__grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.1rem; text-align: left;
+}
+@media (max-width: 860px) { .gallery__grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .gallery__grid { grid-template-columns: 1fr; } }
+.gallery__item {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 10px;
+  padding: 0; overflow: hidden; cursor: pointer; text-align: left;
+  transition: border-color 0.2s, transform 0.15s ease;
+}
+.gallery__item:hover { border-color: var(--brass-dim); transform: translateY(-2px); }
+.gallery__item:focus-visible { outline: 2px solid var(--peg-red); outline-offset: 3px; }
+.gallery__item img { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; object-fit: cover; }
+.gallery__label {
+  display: block; padding: 0.75rem 0.9rem; font-family: var(--mono); font-size: 0.78rem;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--brass);
+  border-top: 1px dotted var(--rule);
+}
+
+/* ---------- lightbox ---------- */
+.lightbox {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: 2rem 1.2rem;
+}
+.lightbox[hidden] { display: none; }
+.lightbox__backdrop { position: absolute; inset: 0; background: rgba(10, 15, 10, 0.86); }
+.lightbox__frame {
+  position: relative; z-index: 1; margin: 0; max-width: min(520px, 100%);
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 12px;
+  padding: 0.9rem 0.9rem 1.1rem; max-height: 90vh; display: flex; flex-direction: column;
+}
+.lightbox__img { width: 100%; height: auto; max-height: 75vh; object-fit: contain; border-radius: 6px; }
+.lightbox__caption { margin-top: 0.8rem; font-size: 0.9rem; color: var(--ink-dim); text-align: center; }
+.lightbox__close {
+  position: absolute; top: -14px; right: -14px; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--brass); color: #201705; border: none; font-size: 1.3rem; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.lightbox__close:focus-visible { outline: 2px solid var(--peg-red); outline-offset: 2px; }
+
 /* ---------- paths ---------- */
 .paths { padding: 5rem 1.5rem; background: var(--bg-2); border-top: 1px dotted var(--rule); border-bottom: 1px dotted var(--rule); }
 .paths__inner { max-width: 1000px; margin: 0 auto; }

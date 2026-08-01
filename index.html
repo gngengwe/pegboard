@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pegboard — Arcade Cribbage with a Live AI Broadcast Booth</title>
+  <meta name="description" content="Real cribbage rules. Two AI announcers calling every hand live. A shuffle you can verify yourself. Join the waitlist." />
+  <meta property="og:title" content="Pegboard — Arcade Cribbage with a Live AI Broadcast Booth" />
+  <meta property="og:description" content="Real cribbage. Live commentary. Provably fair." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2246%22 fill=%22%232F5D46%22/><circle cx=%2250%22 cy=%2250%22 r=%2210%22 fill=%22%23D9A94C%22/></svg>" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <span class="wordmark">Pegboard</span>
+      <a class="topbar__cta" href="#join">Join the waitlist</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <canvas id="pegcanvas" class="hero__canvas" aria-hidden="true"></canvas>
+      <div class="hero__inner">
+        <p class="eyebrow">Arcade Cribbage</p>
+        <h1 class="hero__title">
+          Real cribbage.<br />
+          <span class="accent">Live commentary.</span><br />
+          Provably fair.
+        </h1>
+        <p class="hero__sub">
+          Two AI announcers call every hand the moment it happens — and can prove,
+          mathematically, that they never touched a card to make it exciting.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="#join">Join the waitlist</a>
+          <button class="btn btn--ghost" id="hear-booth" type="button" aria-expanded="false" aria-controls="booth-sample">
+            Hear the booth call a hand
+          </button>
+        </div>
+        <div class="booth-sample" id="booth-sample" hidden>
+          <div class="booth-sample__label">On air — sample call</div>
+          <p class="booth-sample__line"><span class="voice voice--pbp">Play-by-play:</span> "Six of clubs — that's fifteen for two, and the count resets."</p>
+          <p class="booth-sample__line"><span class="voice voice--color">Color:</span> "And that's the safe lead we talked about — she's daring him into a pair he doesn't have."</p>
+          <p class="booth-sample__note">Full audio drops with the first playable build — this is a scripted preview of the booth's voice, not a synthesized clip.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- THREE BEATS -->
+    <section class="beats" id="how">
+      <div class="beats__inner">
+        <article class="beat">
+          <div class="beat__mark" aria-hidden="true">♠</div>
+          <h2>Real rules</h2>
+          <p>Every hand runs on the actual cribbage rulebook — fifteens, runs, pairs, nobs, the crib, the whole board to 121. Nothing simplified, nothing invented to make a highlight reel.</p>
+        </article>
+        <article class="beat">
+          <div class="beat__mark" aria-hidden="true">🎙</div>
+          <h2>Live commentary</h2>
+          <p>A play-by-play voice and a color commentator call your match as it unfolds — explaining the score, reading the board, and teaching without ever making a beginner feel small.</p>
+        </article>
+        <article class="beat">
+          <div class="beat__mark" aria-hidden="true">✓</div>
+          <h2>Provable fairness</h2>
+          <p>The shuffle is committed before the deal and verifiable after it. The booth can see only what a fair announcer should see. Every match ends with a receipt you can check yourself.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- WHO IT'S FOR -->
+    <section class="paths" id="paths">
+      <div class="paths__inner">
+        <h2 class="paths__title">Pick your table</h2>
+        <div class="paths__grid">
+          <article class="path-card">
+            <p class="eyebrow">For players who already know the board</p>
+            <h3>You've played this your whole life.</h3>
+            <p>You've counted a thousand hands at a thousand kitchen tables. Pegboard keeps the real game and gives it a second voice — one that celebrates the hand you just laid down as much as you do.</p>
+            <a class="path-card__cta" href="#join" data-segment="returning">I already play cribbage →</a>
+          </article>
+          <article class="path-card">
+            <p class="eyebrow">For everyone who's never picked up a peg</p>
+            <h3>Never played? You'll be counting by your third hand.</h3>
+            <p>No manual, no muttering under your breath while someone counts your hand for you. The booth explains every score in real time — you just play the card.</p>
+            <a class="path-card__cta" href="#join" data-segment="new">This looks fun →</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- WAITLIST -->
+    <section class="join" id="join">
+      <div class="join__inner">
+        <h2>Get the first deal.</h2>
+        <p>We're building the first playable match right now. Tell us where you're starting from and we'll let you know the moment there's something to play.</p>
+
+        <form id="waitlist-form" class="waitlist-form" novalidate>
+          <div class="field">
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+
+          <fieldset class="field field--pills">
+            <legend>Have you played cribbage before?</legend>
+            <div class="pills" role="radiogroup" aria-label="Cribbage experience">
+              <button type="button" class="pill" data-value="new to cribbage">Never played</button>
+              <button type="button" class="pill" data-value="know the basics">Know the basics</button>
+              <button type="button" class="pill" data-value="been playing for years">Been playing for years</button>
+            </div>
+          </fieldset>
+
+          <button type="submit" class="btn btn--primary btn--block">Join the waitlist</button>
+          <p class="waitlist-form__status" id="form-status" role="status"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <span>Pegboard — a becomiNG project</span>
+      <span class="footer__note">Working title, pending trademark clearance.</span>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

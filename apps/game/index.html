@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pegboard — Test Table</title>
+  <meta name="description" content="Internal test harness: one deterministic-engine cribbage match against a scripted beginner bot, with commentary on/off for the concept-validation study." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2246%22 fill=%22%232F5D46%22/><circle cx=%2250%22 cy=%2250%22 r=%2210%22 fill=%22%23D9A94C%22/></svg>" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <span class="wordmark">Pegboard <span class="wordmark__tag">test table</span></span>
+      <label class="toggle">
+        <input type="checkbox" id="commentary-toggle" checked />
+        <span>Commentary</span>
+      </label>
+    </div>
+  </header>
+
+  <main class="table">
+    <section class="scoreboard" id="scoreboard" aria-live="polite">
+      <div class="scoreboard__side">
+        <span class="scoreboard__name">NORTH (bot)</span>
+        <span class="scoreboard__score" id="score-north">0</span>
+      </div>
+      <div class="scoreboard__mid">
+        <span class="scoreboard__target">to <span id="target-score">61</span></span>
+        <span class="scoreboard__count" id="running-count">0</span>
+        <span class="scoreboard__count-label">count</span>
+      </div>
+      <div class="scoreboard__side">
+        <span class="scoreboard__name">SOUTH (you)</span>
+        <span class="scoreboard__score" id="score-south">0</span>
+      </div>
+    </section>
+
+    <section class="board">
+      <div class="board__starter">
+        <span class="board__label">Starter</span>
+        <div class="card card--placeholder" id="starter-card">—</div>
+      </div>
+      <div class="board__stack" id="peg-stack" aria-label="Cards played this segment"></div>
+      <div class="board__north-hand">
+        <span class="board__label">North's hand</span>
+        <div class="card-backs" id="north-hand-backs"></div>
+      </div>
+    </section>
+
+    <section class="hand-count" id="hand-count" hidden>
+      <h2>Hand count</h2>
+      <div class="hand-count__grid" id="hand-count-grid"></div>
+      <button type="button" class="btn" id="hand-count-continue">Continue</button>
+    </section>
+
+    <section class="discard-panel" id="discard-panel" hidden>
+      <p class="discard-panel__hint">Select two cards for <span id="discard-crib-owner"></span> crib this hand.</p>
+      <div class="hand hand--selectable" id="discard-hand"></div>
+      <button type="button" class="btn" id="discard-confirm" disabled>Send to crib</button>
+    </section>
+
+    <section class="play-panel" id="play-panel" hidden>
+      <p class="play-panel__hint" id="play-hint">Your turn — play a card.</p>
+      <div class="hand" id="play-hand"></div>
+    </section>
+
+    <section class="win-panel" id="win-panel" hidden>
+      <h2 id="win-title">You win</h2>
+      <p id="win-detail"></p>
+      <button type="button" class="btn" id="rematch">Rematch</button>
+    </section>
+
+    <section class="controls" id="start-controls">
+      <label class="field">
+        <span>Target score</span>
+        <select id="target-select">
+          <option value="61">Quick Jam — 61</option>
+          <option value="121">Classic — 121</option>
+        </select>
+      </label>
+      <button type="button" class="btn btn--primary" id="new-game">New game</button>
+    </section>
+  </main>
+
+  <aside class="commentary" id="commentary" aria-live="polite">
+    <div class="commentary__label">Broadcast booth</div>
+    <div class="commentary__feed" id="commentary-feed"></div>
+  </aside>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

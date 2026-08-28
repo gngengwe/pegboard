@@ -103,6 +103,10 @@ button { font: inherit; }
   display: flex; align-items: center; justify-content: center; font-family: var(--display);
   font-size: 1rem; font-weight: 700; border: 1px solid #cbbf98; box-shadow: 0 2px 0 rgba(0,0,0,0.25);
   cursor: default; user-select: none;
+  /* Reset native <button> chrome so an actionable card looks identical to a
+     purely-decorative <div> card — appearance/padding/margin only matter
+     for the button variant, no-ops on the div variant. */
+  appearance: none; padding: 0; margin: 0;
 }
 .card--red { color: #a3372c; }
 .card--placeholder { background: var(--surface-2); color: var(--ink-faint); border-style: dashed; }
@@ -117,7 +121,12 @@ button { font: inherit; }
 .card--owner-south { border-bottom: 3px solid var(--felt); }
 .card--owner-south .card__owner { background: var(--felt); }
 .card--playable { cursor: pointer; border-color: var(--brass); box-shadow: 0 0 0 2px var(--brass), 0 2px 0 rgba(0,0,0,0.25); }
-.card--playable:hover { transform: translateY(-3px); }
+.card--playable:hover:not(:disabled) { transform: translateY(-3px); }
+.card--playable:focus-visible { outline: 2px solid var(--peg-red); outline-offset: 3px; }
+.card--playable:disabled {
+  cursor: not-allowed; opacity: 0.4; border-color: var(--rule);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.25);
+}
 .card--selected { box-shadow: 0 0 0 2px var(--peg-red), 0 2px 0 rgba(0,0,0,0.25); transform: translateY(-3px); }
 
 .card-backs { display: flex; gap: -8px; }
@@ -183,3 +192,7 @@ button { font: inherit; }
 .caption__voice { display: block; font-family: var(--mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint); margin-bottom: 0.3rem; }
 
 [hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}

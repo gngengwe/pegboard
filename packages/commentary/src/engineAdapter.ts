@@ -120,6 +120,13 @@ export class EngineCommentaryAdapter {
     // since it fires after its causing ScoreUpdated has already applied —
     // can still report how many points the winning score was worth.
     let lastScoreBefore: BoardTotals = { ...this.board };
+    // Tracks whether that most recent score came from pegging (CardPlayed /
+    // SegmentEnded's last-card point) or HisHeels — either of which, if it's
+    // also the winning score, means the win pre-empts hand/crib counting
+    // entirely — versus from HandScored (a normal counting-phase win, where
+    // counting already ran its course). Lets the director distinguish an
+    // instant walk-off from an ordinary win when it sees `GameWon`.
+    let lastScoreWasPreCount = false;
 
     for (let i = 0; i < batch.length; i++) {
       const raw = batch[i];
@@ -131,12 +138,15 @@ export class EngineCommentaryAdapter {
         (raw.type === "SegmentEnded" && raw.points > 0);
       const nextIsScoreUpdate = batch[i + 1]?.type === "ScoreUpdated";
       const after = causesScore && nextIsScoreUpdate ? afterIndex[i + 1] : afterIndex[i];
-      if (causesScore) lastScoreBefore = before;
+      if (causesScore) {
+        lastScoreBefore = before;
+        lastScoreWasPreCount = raw.type !== "HandScored";
+      }
 
       if (raw.type === "CardPlayed") this.pegCount = raw.runningCount;
       else if (raw.type === "SegmentEnded") this.pegCount = 0;
 
-      out.push(...this.buildEvents(raw, before, after, this.pegCount, lastScoreBefore));
+      out.push(...this.buildEvents(raw, before, after, this.pegCount, lastScoreBefore, lastScoreWasPreCount));
 
       // Detect ARC-04 (count-control door-slam): a non-scoring play
       // immediately followed, in this same batch, by a Go against the
@@ -159,7 +169,8 @@ export class EngineCommentaryAdapter {
     before: BoardTotals,
     after: BoardTotals,
     pegCount: number,
-    lastScoreBefore: BoardTotals
+    lastScoreBefore: BoardTotals,
+    lastScoreWasPreCount: boolean
   ): PublicCommentaryEvent[] {
     const asSeat = (player: PlayerId): Seat => player;
 
@@ -343,7 +354,10 @@ export class EngineCommentaryAdapter {
             scoringType: "win",
             beforeBoard: lastScoreBefore,
             afterBoard: after,
-            revealedFacts: [`final:${raw.finalScore.north}-${raw.finalScore.south}`],
+            revealedFacts: [
+              `final:${raw.finalScore.north}-${raw.finalScore.south}`,
+              ...(lastScoreWasPreCount ? ["instant_win_pre_count"] : []),
+            ],
           },
         ];
       }

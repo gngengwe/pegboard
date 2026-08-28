@@ -86,7 +86,9 @@ describe("full-game integration: engine -> adapter -> director", () => {
       expect(guard, `seed ${seed} did not complete within the iteration budget`).toBeLessThan(300);
       expect(game.phase).toBe("GAME_COMPLETE");
       expect(wonPrimaries).toHaveLength(1);
-      expect(["ARC-03", "PBP-40"]).toContain(wonPrimaries[0].familyId);
+      // ARC-03 (exact target), PBP-41 (overshoot but pre-empted counting —
+      // a pegging-phase walk-off), or PBP-40 (ordinary counting-phase win).
+      expect(["ARC-03", "PBP-41", "PBP-40"]).toContain(wonPrimaries[0].familyId);
 
       const winner = game.winner!;
       const finalScore = game.getScores()[winner];

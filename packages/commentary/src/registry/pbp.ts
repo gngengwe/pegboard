@@ -486,7 +486,7 @@ export const PBP_FAMILIES: readonly ContentFamily[] = [
     intensityLevel: 4,
     cooldownGroup: "match_end",
     requiredPublicFacts: ["actor"],
-    allowedPlaceholders: ["player"],
+    allowedPlaceholders: ["player", "points"],
     forbiddenInferences: [],
     variants: [
       { tier: "clean", text: "That ends it right there — no more counting needed." },

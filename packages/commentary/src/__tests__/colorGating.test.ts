@@ -93,6 +93,30 @@ describe("intensity-4 PBP gets breathing room", () => {
     expect(result.followUp).toBeUndefined();
   });
 
+  it("an ORDINARY hand that merely escalates to intensity 4 via board-consequence bonuses does NOT get the rare-hand ceremony", () => {
+    // Regression: the ceremonial gate used to key off `event.type` + final
+    // (escalated) intensity, so an ordinary 8-point crib that happened to
+    // land near the finish line with a big swing could reach intensity 4
+    // and falsely trigger "hands like that are why players remember
+    // cribbage for years." The gate must key off which FAMILY was actually
+    // selected (PBP-38/PBP-39), not just the final intensity number.
+    const result = selectCommentary(
+      input({
+        event: event({
+          type: "crib_scored",
+          actor: NORTH,
+          points: 8,
+          scoringType: "crib_total",
+          beforeBoard: { northScore: 112, southScore: 50 },
+          afterBoard: { northScore: 120, southScore: 50 },
+        }),
+      })
+    );
+    expect(result.primary?.familyId).toBe("PBP-32");
+    expect(result.primary?.intensity).toBe(4); // still escalates — that part is correct
+    expect(result.followUp).toBeUndefined(); // but no false ceremonial claim
+  });
+
   it("a rare counted hand (intensity 4) DOES get the ceremonial CLR-40 follow-up", () => {
     const result = selectCommentary(
       input({

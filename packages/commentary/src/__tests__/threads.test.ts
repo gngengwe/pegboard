@@ -51,6 +51,29 @@ describe("comeback thread", () => {
     ]);
     expect(threads.find((t) => t.id === "comeback")).toBeUndefined();
   });
+
+  it("starts a fresh story for the newly-trailing seat when the lead flips without ever passing through an exact tie", () => {
+    // Regression: a big crib count can jump the score straight past a tie
+    // (40 -> 45 skips 40-40 entirely). The old code kept mutating the
+    // existing "south" thread with north's numbers, producing a thread whose
+    // `subject` field and narrated seat disagreed with each other.
+    const { threads } = run([
+      { event: event({ id: "e1" }), board: board({ northScore: 40, southScore: 25 }) }, // south down 15 (peak)
+      { event: event({ id: "e2" }), board: board({ northScore: 40, southScore: 32 }) }, // south cuts to 8 -> thread starts, subject south
+      { event: event({ id: "e3" }), board: board({ northScore: 40, southScore: 45 }) }, // lead flips, no tie crossed; north now trails by 5
+    ]);
+
+    const comeback = threads.find((t) => t.id === "comeback");
+    // North's deficit (5) hasn't yet peaked at 10+ and been cut by 5+, so no
+    // thread should be active yet for north — but critically, whatever IS
+    // there (if anything) must never claim "south" while north is the one
+    // actually trailing.
+    if (comeback) {
+      expect(comeback.subject).toBe("north");
+      expect(comeback.summary).toContain("north");
+      expect(comeback.summary).not.toContain("south");
+    }
+  });
 });
 
 describe("rare_moment thread", () => {

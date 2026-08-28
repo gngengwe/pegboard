@@ -58,6 +58,7 @@ function cardLabel(card: Card): { text: string; red: boolean } {
   return { text: `${card.rank}${suitSymbol}`, red };
 }
 
+/** Purely-decorative cards (peg stack, starter) — never focusable, never interactive. */
 function renderCard(card: Card, extraClass = "", owner?: PlayerId): HTMLElement {
   const { text, red } = cardLabel(card);
   const div = document.createElement("div");
@@ -71,6 +72,33 @@ function renderCard(card: Card, extraClass = "", owner?: PlayerId): HTMLElement 
     div.appendChild(badge);
   }
   return div;
+}
+
+/**
+ * A card the player can actually act on. Real `<button>` elements so
+ * keyboard users (Tab to reach it, Enter/Space to activate — native button
+ * behavior, no custom keydown handling needed) and screen readers can use
+ * them exactly like the surrounding confirm/continue/new-game buttons
+ * already work. `disabled` cards stay in the DOM and are announced (with a
+ * reason), rather than just being visually dimmed and invisible to AT.
+ */
+function renderActionableCard(
+  card: Card,
+  options: { selected?: boolean; disabled?: boolean; disabledReason?: string; onActivate?: () => void }
+): HTMLButtonElement {
+  const { text, red } = cardLabel(card);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `card card--playable ${red ? "card--red" : ""} ${options.selected ? "card--selected" : ""}`.trim();
+  button.textContent = text;
+  const label = options.disabled && options.disabledReason ? `${text}, ${options.disabledReason}` : text;
+  button.setAttribute("aria-label", label);
+  if (options.disabled) {
+    button.disabled = true;
+  } else if (options.onActivate) {
+    button.addEventListener("click", options.onActivate);
+  }
+  return button;
 }
 
 function appendCaption(voice: "pbp" | "color", text: string): void {
@@ -172,6 +200,15 @@ function render(): void {
 
   el.discardPanel.hidden = true;
   el.playPanel.hidden = true;
+  // Tear down stale card listeners whenever leaving either panel's active
+  // condition below — otherwise the last hand's card elements (bound to
+  // card ids that no longer exist once a new hand deals) sit hidden in the
+  // DOM with live listeners, and a non-mouse activation path (synthetic
+  // event, assistive tech, an automated driver) could fire a discard/play
+  // command against the wrong phase and throw uncaught.
+  el.discardHand.replaceChildren();
+  el.discardConfirm.disabled = true;
+  el.playHand.replaceChildren();
 
   // Whose move is it, in plain language — this is the single source of truth
   // for "who is who" at any moment, independent of which panel is showing.
@@ -197,12 +234,12 @@ function render(): void {
     el.discardPanel.hidden = false;
     el.discardCribOwner.textContent = pub.dealer === HUMAN ? "your" : "North's";
     el.discardHand.replaceChildren(
-      ...south.ownHand.map((card) => {
-        const node = renderCard(card, "card--playable");
-        if (selectedDiscards.includes(card.id)) node.classList.add("card--selected");
-        node.addEventListener("click", () => toggleDiscard(card.id));
-        return node;
-      })
+      ...south.ownHand.map((card) =>
+        renderActionableCard(card, {
+          selected: selectedDiscards.includes(card.id),
+          onActivate: () => toggleDiscard(card.id),
+        })
+      )
     );
     el.discardConfirm.disabled = selectedDiscards.length !== 2;
   }
@@ -219,10 +256,11 @@ function render(): void {
     el.playHand.replaceChildren(
       ...(south.remainingToPlay ?? []).map((card) => {
         const isLegal = isHuman && legal.includes(card.id);
-        const node = renderCard(card, isLegal ? "card--playable" : "");
-        if (isLegal) node.addEventListener("click", () => humanPlay(card.id));
-        else node.style.opacity = isHuman ? "0.35" : "0.7";
-        return node;
+        return renderActionableCard(card, {
+          disabled: !isLegal,
+          disabledReason: isHuman ? "not currently playable" : "waiting for North",
+          onActivate: () => humanPlay(card.id),
+        });
       })
     );
   }

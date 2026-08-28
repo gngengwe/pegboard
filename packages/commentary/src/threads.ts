@@ -84,6 +84,22 @@ function updateComeback(
   const newPeak = Math.max(priorPeakForSubject, currentDeficit);
   const nextPeakDeficit = { ...priorPeakDeficit, [subject]: newPeak };
 
+  // The lead can flip without ever passing through an exact tie (e.g. a big
+  // crib count jumps straight past it), so `trailing` can change out from
+  // under an already-active thread without the tie/zero-deficit branch above
+  // ever firing. Treat that as the old comeback story ending and a new one
+  // (for whichever seat is trailing now) potentially starting — reusing the
+  // old thread here would leave its `subject` and the new narrative text
+  // referring to two different seats.
+  if (existingThread && existingThread.subject !== subject) {
+    return updateComeback(
+      upsert(threads, "comeback", null),
+      event,
+      board,
+      priorPeakDeficit
+    );
+  }
+
   if (!existingThread) {
     // Start condition: a deficit of at least 10 has been reduced by at least 5.
     if (newPeak >= 10 && newPeak - currentDeficit >= 5) {

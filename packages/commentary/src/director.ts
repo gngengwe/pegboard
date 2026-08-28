@@ -111,8 +111,14 @@ function resolvePbp(
       const winner = event.actor!;
       const finalScore = scoreOf(event.afterBoard, winner);
       const exact = finalScore === targetScore;
+      // Exact-target wins always lead with ARC-03 regardless of when they
+      // happened. Otherwise, a win that pre-empted hand/crib counting
+      // (PBP-41) is a meaningfully different rules moment from an ordinary
+      // win discovered mid-count (PBP-40) — worth its own call.
+      const preCount = event.revealedFacts.includes("instant_win_pre_count");
+      const familyId = exact ? "ARC-03" : preCount ? "PBP-41" : "PBP-40";
       return {
-        familyId: exact ? "ARC-03" : "PBP-40",
+        familyId,
         placeholders: { player: seatName(winner), points: event.points ?? 0 },
       };
     }
@@ -255,8 +261,14 @@ export function selectCommentary(input: CommentaryDirectorInput): CommentarySele
 
   let followUp: CommentaryFollowUp | undefined;
 
-  const ceremonial = event.type === "hand_scored" || event.type === "crib_scored";
-  const needsSpace = intensity === 4 && !ceremonial && event.type !== "game_won";
+  // Gated on the FAMILY actually selected, not just event type + final
+  // intensity: intensity can reach 4 on an ordinary hand purely through
+  // board-consequence escalation (a big swing near the finish line), which
+  // must not trigger the "hands like that are why players remember
+  // cribbage for years" ceremony — that claim is only true for the two
+  // genuinely rare-hand families.
+  const isRareHandFamily = family.familyId === "PBP-38" || family.familyId === "PBP-39";
+  const needsSpace = intensity === 4 && !isRareHandFamily && event.type !== "game_won";
 
   if (!needsSpace) {
     if (event.type === "game_won") {
@@ -274,7 +286,7 @@ export function selectCommentary(input: CommentaryDirectorInput): CommentarySele
           followUp = { familyId: "BX-12", role: "booth_exchange", delayMs: 600, line: closingLine };
         }
       }
-    } else if (intensity >= 4) {
+    } else if (isRareHandFamily) {
       // Rare-hand ceremony: PBP gets a pause, then CLR-40 provides the one
       // permitted follow-up (this is the taxonomy's explicit ceremonial
       // exception to "intensity-4 PBP suppresses ordinary color").

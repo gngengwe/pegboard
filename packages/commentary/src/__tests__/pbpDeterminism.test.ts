@@ -234,6 +234,29 @@ describe("deterministic play-by-play", () => {
     expect(result.primary?.familyId).toBe("PBP-40");
   });
 
+  it("calls the pegging walk-off family (PBP-41) when an overshoot win pre-empts hand/crib counting", () => {
+    // Regression: PBP-41 was fully authored in the registry but structurally
+    // unreachable — resolvePbp's game_won case only ever chose ARC-03 (exact)
+    // or PBP-40 (generic), with no branch distinguishing a pegging-phase
+    // instant win (which skips counting entirely — a genuine rules moment)
+    // from an ordinary win discovered mid-count.
+    const result = selectCommentary(
+      input({
+        event: event({
+          type: "game_won",
+          actor: SOUTH,
+          points: 8,
+          scoringType: "win",
+          beforeBoard: { northScore: 100, southScore: 115 },
+          afterBoard: { northScore: 100, southScore: 123 },
+          revealedFacts: ["final:100-123", "instant_win_pre_count"],
+        }),
+      })
+    );
+    expect(result.primary?.familyId).toBe("PBP-41");
+    expect(result.primary?.line.toLowerCase()).toMatch(/no more counting|no counting needed/);
+  });
+
   it("calls his heels on a jack starter", () => {
     const result = selectCommentary(
       input({

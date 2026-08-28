@@ -47,7 +47,16 @@ const DEFAULT_MIN_GAP: Readonly<Record<string, number>> = {
 };
 
 export function minGapFor(cooldownGroup: string): number {
-  return DEFAULT_MIN_GAP[cooldownGroup] ?? 1;
+  if (cooldownGroup in DEFAULT_MIN_GAP) return DEFAULT_MIN_GAP[cooldownGroup];
+  // Fail loudly rather than silently: falling back to `1` would be exactly
+  // the dead-no-op value this file's own comment warns about (the gap
+  // between any two distinct calls is always >= 1, so minGap=1 can never
+  // actually block anything). A family registered with a cooldown group
+  // that has no table entry — new or misspelled — is an authoring bug that
+  // should surface immediately, not silently ship with no real cooldown.
+  throw new Error(
+    `No cooldown spacing configured for group "${cooldownGroup}". Add it to DEFAULT_MIN_GAP in cooldowns.ts.`
+  );
 }
 
 export function isOnCooldown(cooldowns: CommentaryCooldowns, cooldownGroup: string): boolean {

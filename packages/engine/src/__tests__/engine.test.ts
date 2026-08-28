@@ -75,6 +75,23 @@ describe("CribbageGame — discard and pegging flow", () => {
     const north = game.getProjection("north").ownHand!;
     expect(() => game.discard("north", [north[0].id, north[0].id])).toThrow();
   });
+
+  it("leaves the hand untouched when one of the two discard ids is invalid", () => {
+    // Regression: `discard()` used to validate+remove card `a` before even
+    // checking that card `b` existed, so a valid `a` was silently spliced out
+    // of the hand (and never reached the crib) the moment `b` turned out to
+    // be bogus and the call threw.
+    const game = new CribbageGame({ targetScore: 121, seed: 42 });
+    game.start();
+    const hand = game.getProjection("north").ownHand!;
+    const validId = hand[0].id;
+
+    expect(() => game.discard("north", [validId, "NOPE-clubs"])).toThrow();
+
+    const afterHand = game.getProjection("north").ownHand!;
+    expect(afterHand).toHaveLength(6);
+    expect(afterHand.some((c) => c.id === validId)).toBe(true);
+  });
 });
 
 describe("CribbageGame — full game simulation", () => {

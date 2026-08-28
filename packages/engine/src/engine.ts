@@ -131,7 +131,15 @@ export class CribbageGame {
     const [a, b] = cards;
     if (a === b) throw new Error("Cannot discard the same card twice.");
 
-    const discarded = [removeCard(this.hands[player], a), removeCard(this.hands[player], b)];
+    // Validate both ids exist before mutating either — `removeCard` splices
+    // its target out immediately, so removing one before checking the other
+    // would silently drop a valid card from the game if the second id turned
+    // out to be invalid (the thrown error left no way to put it back).
+    const hand = this.hands[player];
+    if (!findCard(hand, a)) throw new Error(`${player} does not have ${a} to discard.`);
+    if (!findCard(hand, b)) throw new Error(`${player} does not have ${b} to discard.`);
+
+    const discarded = [removeCard(hand, a), removeCard(hand, b)];
     this.crib.push(...discarded);
     this.emit({ type: "CardsDiscarded", player, cards: [a, b] });
 

@@ -1,3 +1,4 @@
+import type { Mode } from "@pegboard/commentary";
 import { CribbageGame, type Card, type CardId, type GameEvent, type PlayerId } from "@pegboard/engine";
 import { chooseBeginnerDiscard, chooseBeginnerPlay } from "./bot.js";
 import { MatchCommentary } from "./commentaryClient.js";
@@ -10,6 +11,7 @@ const BOT_DELAY_MS = 700;
 
 const el = {
   commentaryToggle: document.getElementById("commentary-toggle") as HTMLInputElement,
+  commentaryModeSelect: document.getElementById("commentary-mode-select") as HTMLSelectElement,
   commentary: document.getElementById("commentary") as HTMLElement,
   feed: document.getElementById("commentary-feed") as HTMLElement,
   scoreNorth: document.getElementById("score-north") as HTMLElement,
@@ -232,7 +234,9 @@ function render(): void {
   }
 
   el.startControls.hidden = pub.phase !== "GAME_COMPLETE";
-  el.commentaryToggle.disabled = pub.phase !== "GAME_COMPLETE";
+  const matchActive = pub.phase !== "GAME_COMPLETE";
+  el.commentaryToggle.disabled = matchActive;
+  el.commentaryModeSelect.disabled = matchActive || !el.commentaryToggle.checked;
 }
 
 function toggleDiscard(id: CardId): void {
@@ -303,6 +307,7 @@ function scheduleBotIfNeeded(): void {
 
 function startNewGame(): void {
   const targetScore = Number(el.targetSelect.value) as 61 | 121;
+  const mode = el.commentaryModeSelect.value as Mode;
   commentaryEnabled = el.commentaryToggle.checked;
   el.commentary.dataset.enabled = String(commentaryEnabled);
   el.feed.replaceChildren();
@@ -312,12 +317,16 @@ function startNewGame(): void {
   matchStartedAt = Date.now();
 
   game = new CribbageGame({ targetScore });
-  commentary = new MatchCommentary(crypto.randomUUID(), "broadcast", targetScore);
+  commentary = new MatchCommentary(crypto.randomUUID(), mode, targetScore);
   const events = game.start();
   processEvents(events);
   render();
   scheduleBotIfNeeded();
 }
+
+el.commentaryToggle.addEventListener("change", () => {
+  el.commentaryModeSelect.disabled = !el.commentaryToggle.checked;
+});
 
 el.discardConfirm.addEventListener("click", () => {
   if (!game || selectedDiscards.length !== 2) return;

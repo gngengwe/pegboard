@@ -49,8 +49,14 @@ button { font: inherit; }
 .wordmark { font-family: var(--display); font-size: 1.1rem; }
 .wordmark__tag { font-family: var(--mono); font-size: 0.7rem; color: var(--brass); text-transform: uppercase; letter-spacing: 0.08em; margin-left: 0.5em; }
 
+.commentary-controls { display: flex; align-items: center; gap: 1rem; }
 .toggle { display: flex; align-items: center; gap: 0.5em; font-family: var(--mono); font-size: 0.8rem; color: var(--ink-dim); cursor: pointer; }
 .toggle input { accent-color: var(--brass); width: 16px; height: 16px; }
+#commentary-mode-select {
+  font-family: var(--mono); font-size: 0.78rem; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--rule); border-radius: 6px; padding: 0.35rem 0.6rem; cursor: pointer;
+}
+#commentary-mode-select:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .table { padding: 1.2rem; max-width: 780px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 1.1rem; }
 

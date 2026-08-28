@@ -12,10 +12,21 @@
   <header class="topbar">
     <div class="topbar__inner">
       <span class="wordmark">Pegboard <span class="wordmark__tag">test table</span></span>
-      <label class="toggle">
-        <input type="checkbox" id="commentary-toggle" checked />
-        <span>Commentary</span>
-      </label>
+      <div class="commentary-controls">
+        <label class="toggle">
+          <input type="checkbox" id="commentary-toggle" checked />
+          <span>Commentary</span>
+        </label>
+        <select id="commentary-mode-select" aria-label="Commentary mode">
+          <option value="broadcast" selected>Broadcast</option>
+          <option value="arcade">Arcade</option>
+          <option value="expert">Expert</option>
+          <option value="learn">Learn</option>
+          <option value="kids">Kids</option>
+          <option value="minimal">Minimal</option>
+          <option value="quiet">Quiet</option>
+        </select>
+      </div>
     </div>
   </header>
 

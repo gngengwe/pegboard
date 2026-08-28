@@ -1,6 +1,6 @@
 import { CribbageGame, type Card, type CardId, type GameEvent, type PlayerId } from "@pegboard/engine";
 import { chooseBeginnerDiscard, chooseBeginnerPlay } from "./bot.js";
-import { captionsForEvent } from "./commentary.js";
+import { MatchCommentary } from "./commentaryClient.js";
 import { recordMatch } from "./telemetry.js";
 import "./style.css";
 
@@ -17,6 +17,9 @@ const el = {
   targetScoreLabel: document.getElementById("target-score") as HTMLElement,
   runningCount: document.getElementById("running-count") as HTMLElement,
   starterCard: document.getElementById("starter-card") as HTMLElement,
+  turnBanner: document.getElementById("turn-banner") as HTMLElement,
+  sideNorth: document.getElementById("side-north") as HTMLElement,
+  sideSouth: document.getElementById("side-south") as HTMLElement,
   pegStack: document.getElementById("peg-stack") as HTMLElement,
   northHandBacks: document.getElementById("north-hand-backs") as HTMLElement,
   handCount: document.getElementById("hand-count") as HTMLElement,
@@ -39,9 +42,13 @@ const el = {
 };
 
 let game: CribbageGame | null = null;
+let commentary: MatchCommentary | null = null;
 let commentaryEnabled = true;
 let matchStartedAt = 0;
 let selectedDiscards: CardId[] = [];
+/** Which seat played each card in the current pegging segment — the engine's
+ * projection doesn't carry this, so it's rebuilt client-side from events. */
+let pegStackOwners: { player: PlayerId; cardId: CardId }[] = [];
 
 function cardLabel(card: Card): { text: string; red: boolean } {
   const suitSymbol = { clubs: "♣", diamonds: "♦", hearts: "♥", spades: "♠" }[card.suit];
@@ -49,11 +56,18 @@ function cardLabel(card: Card): { text: string; red: boolean } {
   return { text: `${card.rank}${suitSymbol}`, red };
 }
 
-function renderCard(card: Card, extraClass = ""): HTMLElement {
+function renderCard(card: Card, extraClass = "", owner?: PlayerId): HTMLElement {
   const { text, red } = cardLabel(card);
   const div = document.createElement("div");
-  div.className = `card ${red ? "card--red" : ""} ${extraClass}`.trim();
+  const ownerClass = owner ? `card--owner-${owner}` : "";
+  div.className = `card ${red ? "card--red" : ""} ${extraClass} ${ownerClass}`.trim();
   div.textContent = text;
+  if (owner) {
+    const badge = document.createElement("span");
+    badge.className = "card__owner";
+    badge.textContent = owner === "north" ? "N" : "S";
+    div.appendChild(badge);
+  }
   return div;
 }
 
@@ -70,11 +84,19 @@ function appendCaption(voice: "pbp" | "color", text: string): void {
 }
 
 function processEvents(events: readonly GameEvent[]): void {
-  if (!commentaryEnabled) return;
   for (const event of events) {
-    for (const caption of captionsForEvent(event)) {
-      appendCaption(caption.voice, caption.text);
+    if (event.type === "CardPlayed") {
+      pegStackOwners.push({ player: event.player, cardId: event.card });
+    } else if (event.type === "SegmentEnded" || event.type === "HandDealt") {
+      pegStackOwners = [];
     }
+  }
+
+  if (!commentaryEnabled || !commentary || !game) return;
+  const projection = game.getProjection();
+  const captions = commentary.process(events, projection, projection.dealer);
+  for (const caption of captions) {
+    appendCaption(caption.voice, caption.text);
   }
 }
 
@@ -128,7 +150,12 @@ function render(): void {
     el.starterCard.classList.add("card--placeholder");
   }
 
-  el.pegStack.replaceChildren(...pub.pegStack.map((c) => renderCard(c)));
+  el.pegStack.replaceChildren(
+    ...pub.pegStack.map((c) => {
+      const owner = pegStackOwners.find((o) => o.cardId === c.id)?.player;
+      return renderCard(c, "", owner);
+    })
+  );
   el.northHandBacks.replaceChildren(
     ...north.remainingToPlay?.map(() => {
       const back = document.createElement("div");
@@ -144,6 +171,26 @@ function render(): void {
   el.discardPanel.hidden = true;
   el.playPanel.hidden = true;
 
+  // Whose move is it, in plain language — this is the single source of truth
+  // for "who is who" at any moment, independent of which panel is showing.
+  el.sideNorth.classList.remove("scoreboard__side--active");
+  el.sideSouth.classList.remove("scoreboard__side--active");
+  if (pub.phase === "DISCARD_TO_CRIB" || pub.phase === "PEGGING") {
+    el.turnBanner.hidden = false;
+    if (pub.phase === "DISCARD_TO_CRIB") {
+      el.turnBanner.textContent = "Your turn — send two cards to the crib.";
+      el.turnBanner.dataset.turn = "south";
+      el.sideSouth.classList.add("scoreboard__side--active");
+    } else {
+      const isHuman = pub.turnPlayer === HUMAN;
+      el.turnBanner.textContent = isHuman ? "Your turn — play a card." : "North is thinking…";
+      el.turnBanner.dataset.turn = isHuman ? "south" : "north";
+      (isHuman ? el.sideSouth : el.sideNorth).classList.add("scoreboard__side--active");
+    }
+  } else {
+    el.turnBanner.hidden = true;
+  }
+
   if (pub.phase === "DISCARD_TO_CRIB" && south.ownHand?.length === 6) {
     el.discardPanel.hidden = false;
     el.discardCribOwner.textContent = pub.dealer === HUMAN ? "your" : "North's";
@@ -158,16 +205,21 @@ function render(): void {
     el.discardConfirm.disabled = selectedDiscards.length !== 2;
   }
 
-  if (pub.phase === "PEGGING" && pub.turnPlayer === HUMAN) {
+  if (pub.phase === "PEGGING") {
     el.playPanel.hidden = false;
-    const legal = south.legalPlays;
-    el.playHint.textContent = legal.length > 0 ? "Your turn — play a card." : "No legal play — go.";
+    const isHuman = pub.turnPlayer === HUMAN;
+    const legal = isHuman ? south.legalPlays : [];
+    el.playHint.textContent = isHuman
+      ? legal.length > 0
+        ? "Your turn — play a card."
+        : "No legal play — go."
+      : "North is thinking…";
     el.playHand.replaceChildren(
       ...(south.remainingToPlay ?? []).map((card) => {
-        const isLegal = legal.includes(card.id);
+        const isLegal = isHuman && legal.includes(card.id);
         const node = renderCard(card, isLegal ? "card--playable" : "");
         if (isLegal) node.addEventListener("click", () => humanPlay(card.id));
-        else node.style.opacity = "0.35";
+        else node.style.opacity = isHuman ? "0.35" : "0.7";
         return node;
       })
     );
@@ -256,9 +308,11 @@ function startNewGame(): void {
   el.feed.replaceChildren();
   el.handCount.hidden = true;
   selectedDiscards = [];
+  pegStackOwners = [];
   matchStartedAt = Date.now();
 
   game = new CribbageGame({ targetScore });
+  commentary = new MatchCommentary(crypto.randomUUID(), "broadcast", targetScore);
   const events = game.start();
   processEvents(events);
   render();

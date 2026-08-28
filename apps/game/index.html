@@ -21,8 +21,11 @@
 
   <main class="table">
     <section class="scoreboard" id="scoreboard" aria-live="polite">
-      <div class="scoreboard__side">
-        <span class="scoreboard__name">NORTH (bot)</span>
+      <div class="scoreboard__side" id="side-north">
+        <span class="scoreboard__name">
+          <span class="scoreboard__dot scoreboard__dot--north" aria-hidden="true"></span>
+          North <span class="scoreboard__role">bot</span>
+        </span>
         <span class="scoreboard__score" id="score-north">0</span>
       </div>
       <div class="scoreboard__mid">
@@ -30,11 +33,16 @@
         <span class="scoreboard__count" id="running-count">0</span>
         <span class="scoreboard__count-label">count</span>
       </div>
-      <div class="scoreboard__side">
-        <span class="scoreboard__name">SOUTH (you)</span>
+      <div class="scoreboard__side scoreboard__side--you" id="side-south">
+        <span class="scoreboard__name">
+          South <span class="scoreboard__role">you</span>
+          <span class="scoreboard__dot scoreboard__dot--south" aria-hidden="true"></span>
+        </span>
         <span class="scoreboard__score" id="score-south">0</span>
       </div>
     </section>
+
+    <p class="turn-banner" id="turn-banner" hidden aria-live="polite"></p>
 
     <section class="board">
       <div class="board__starter">

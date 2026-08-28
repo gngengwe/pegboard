@@ -6,6 +6,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     // Workspace package is consumed straight from TS source — don't pre-bundle it.
-    exclude: ["@pegboard/engine"],
+    exclude: ["@pegboard/engine", "@pegboard/commentary"],
   },
 });

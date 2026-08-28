@@ -13,7 +13,9 @@
     "dev:game": "npm run dev --workspace=@pegboard/game",
     "build:game": "npm run build --workspace=@pegboard/game",
     "test:engine": "npm run test --workspace=@pegboard/engine",
-    "typecheck:engine": "npm run typecheck --workspace=@pegboard/engine"
+    "typecheck:engine": "npm run typecheck --workspace=@pegboard/engine",
+    "test:commentary": "npm run test --workspace=@pegboard/commentary",
+    "typecheck:commentary": "npm run typecheck --workspace=@pegboard/commentary"
   },
   "devDependencies": {
     "typescript": "^5.6.2"

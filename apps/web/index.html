@@ -134,7 +134,7 @@
 
           <fieldset class="field field--pills">
             <legend>Have you played cribbage before?</legend>
-            <div class="pills" role="radiogroup" aria-label="Cribbage experience">
+            <div class="pills" aria-label="Cribbage experience">
               <button type="button" class="pill" data-value="new to cribbage">Never played</button>
               <button type="button" class="pill" data-value="know the basics">Know the basics</button>
               <button type="button" class="pill" data-value="been playing for years">Been playing for years</button>
@@ -148,7 +148,7 @@
     </section>
   </main>
 
-  <div class="lightbox" id="lightbox" hidden>
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Interface preview" hidden>
     <div class="lightbox__backdrop" data-close="true"></div>
     <figure class="lightbox__frame">
       <button type="button" class="lightbox__close" data-close="true" aria-label="Close preview">&times;</button>

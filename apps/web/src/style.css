@@ -10,7 +10,7 @@
   --surface-2: #24322A;
   --ink: #ECE6D2;
   --ink-dim: #A9A188;
-  --ink-faint: #6E6C5B;
+  --ink-faint: #A29D89; /* lightened from #6E6C5B: that failed WCAG AA (~2.8-3.4:1) against --bg/--surface; this clears 4.5:1 against both */
   --felt: #6FA98A;
   --felt-deep: #2F5D46;
   --brass: #D9A94C;

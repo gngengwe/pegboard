@@ -205,8 +205,29 @@ function initGallery(): void {
     el.addEventListener("click", close);
   });
 
+  // Focus trap: while open, Tab/Shift+Tab must cycle only through elements
+  // inside the dialog, never escape into the page content dimmed behind it.
+  const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !lightbox.hasAttribute("hidden")) close();
+    if (lightbox.hasAttribute("hidden")) return;
+    if (event.key === "Escape") {
+      close();
+      return;
+    }
+    if (event.key !== "Tab") return;
+
+    const focusable = Array.from(lightbox.querySelectorAll<HTMLElement>(FOCUSABLE));
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   });
 }
 

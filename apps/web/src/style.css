@@ -240,7 +240,11 @@ button { font: inherit; color: inherit; }
 }
 .pill:hover { border-color: var(--brass-dim); color: var(--ink); }
 .pill[aria-pressed="true"] { background: var(--felt-deep); border-color: var(--felt); color: var(--ink); }
+.pills__caption { margin: 0.55rem 0 0; font-size: 0.78rem; color: var(--felt); min-height: 1.1em; }
 
+.waitlist-form__hint {
+  margin: -0.6rem 0 0.9rem; font-size: 0.78rem; color: var(--ink-faint);
+}
 .waitlist-form__status {
   margin-top: 0.9rem; font-size: 0.85rem; color: var(--felt); min-height: 1.2em;
 }

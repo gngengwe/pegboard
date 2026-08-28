@@ -2,7 +2,7 @@ import type { Mode } from "@pegboard/commentary";
 import { CribbageGame, type Card, type CardId, type GameEvent, type PlayerId } from "@pegboard/engine";
 import { chooseBeginnerDiscard, chooseBeginnerPlay } from "./bot.js";
 import { MatchCommentary } from "./commentaryClient.js";
-import { recordMatch } from "./telemetry.js";
+import { recordMatch, summarize } from "./telemetry.js";
 import "./style.css";
 
 const HUMAN: PlayerId = "south";
@@ -37,10 +37,12 @@ const el = {
   winPanel: document.getElementById("win-panel") as HTMLElement,
   winTitle: document.getElementById("win-title") as HTMLElement,
   winDetail: document.getElementById("win-detail") as HTMLElement,
+  winCaption: document.getElementById("win-caption") as HTMLElement,
   rematch: document.getElementById("rematch") as HTMLButtonElement,
   startControls: document.getElementById("start-controls") as HTMLElement,
   targetSelect: document.getElementById("target-select") as HTMLSelectElement,
   newGame: document.getElementById("new-game") as HTMLButtonElement,
+  sessionStats: document.getElementById("session-stats") as HTMLElement,
 };
 
 let game: CribbageGame | null = null;
@@ -48,6 +50,7 @@ let commentary: MatchCommentary | null = null;
 let commentaryEnabled = true;
 let matchStartedAt = 0;
 let selectedDiscards: CardId[] = [];
+let prevScores = { north: 0, south: 0 };
 /** Which seat played each card in the current pegging segment — the engine's
  * projection doesn't carry this, so it's rebuilt client-side from events. */
 let pegStackOwners: { player: PlayerId; cardId: CardId }[] = [];
@@ -56,6 +59,17 @@ function cardLabel(card: Card): { text: string; red: boolean } {
   const suitSymbol = { clubs: "♣", diamonds: "♦", hearts: "♥", spades: "♠" }[card.suit];
   const red = card.suit === "diamonds" || card.suit === "hearts";
   return { text: `${card.rank}${suitSymbol}`, red };
+}
+
+/** Small non-interactive card used inside a hand-count combo row, glow-tinted
+ * by scoring type so a player can see *which* cards made each fifteen/run/pair
+ * instead of only reading a number. */
+function renderComboCard(card: Card, scoreType: string): HTMLElement {
+  const { text, red } = cardLabel(card);
+  const div = document.createElement("div");
+  div.className = `card hand-count-card hand-count-card--${scoreType} ${red ? "card--red" : ""}`.trim();
+  div.textContent = text;
+  return div;
 }
 
 /** Purely-decorative cards (peg stack, starter) — never focusable, never interactive. */
@@ -101,7 +115,12 @@ function renderActionableCard(
   return button;
 }
 
+/** Last line the booth said — reused in the win panel so the payoff line
+ * isn't only visible if you happened to be looking at the sidebar feed. */
+let lastCaptionText: string | null = null;
+
 function appendCaption(voice: "pbp" | "color", text: string): void {
+  lastCaptionText = text;
   const div = document.createElement("div");
   div.className = `caption caption--${voice}`;
   const label = document.createElement("span");
@@ -145,7 +164,14 @@ function showHandCountIfPresent(events: readonly GameEvent[]): void {
     const list = document.createElement("ul");
     for (const entry of event.entries) {
       const li = document.createElement("li");
-      li.textContent = `${entry.label} — ${entry.points}`;
+      const cardRow = document.createElement("div");
+      cardRow.className = "hand-count__cards";
+      cardRow.append(...entry.cards.map((c) => renderComboCard(c, entry.type)));
+      li.appendChild(cardRow);
+      const label = document.createElement("span");
+      label.className = "hand-count__combo-label";
+      label.textContent = `${entry.label} — ${entry.points}`;
+      li.appendChild(label);
       list.appendChild(li);
     }
     col.appendChild(list);
@@ -158,11 +184,24 @@ function showHandCountIfPresent(events: readonly GameEvent[]): void {
   el.handCount.hidden = false;
 }
 
+/** Retriggers a CSS animation on `target` even if one is already mid-run —
+ * removing the class doesn't do it alone since the browser coalesces the
+ * add/remove within the same frame, so a reflow read is forced in between. */
+function bump(target: HTMLElement, className: string): void {
+  target.classList.remove(className);
+  void target.offsetWidth;
+  target.classList.add(className);
+}
+
 function render(): void {
   if (!game) return;
   const pub = game.getProjection();
   const south = game.getProjection(HUMAN);
   const north = game.getProjection(BOT);
+
+  if (pub.scores.north !== prevScores.north) bump(el.scoreNorth, "scoreboard__score--bump");
+  if (pub.scores.south !== prevScores.south) bump(el.scoreSouth, "scoreboard__score--bump");
+  prevScores = { north: pub.scores.north, south: pub.scores.south };
 
   el.scoreNorth.textContent = String(pub.scores.north);
   el.scoreSouth.textContent = String(pub.scores.south);
@@ -217,7 +256,7 @@ function render(): void {
   if (pub.phase === "DISCARD_TO_CRIB" || pub.phase === "PEGGING") {
     el.turnBanner.hidden = false;
     if (pub.phase === "DISCARD_TO_CRIB") {
-      el.turnBanner.textContent = "Your turn — send two cards to the crib.";
+      el.turnBanner.textContent = "Your turn.";
       el.turnBanner.dataset.turn = "south";
       el.sideSouth.classList.add("scoreboard__side--active");
     } else {
@@ -269,6 +308,7 @@ function render(): void {
   if (pub.winner) {
     el.winTitle.textContent = pub.winner === HUMAN ? "You win" : "North wins";
     el.winDetail.textContent = `${pub.scores.south} – ${pub.scores.north}`;
+    el.winCaption.textContent = commentaryEnabled && lastCaptionText ? lastCaptionText : "";
   }
 
   el.startControls.hidden = pub.phase !== "GAME_COMPLETE";
@@ -309,8 +349,35 @@ function checkGameOver(events: readonly GameEvent[]): void {
       durationMs: Date.now() - matchStartedAt,
       timestamp: Date.now(),
     });
+    renderSessionStats();
   }
 }
+
+/**
+ * Records the CURRENT match as abandoned if one is genuinely in progress
+ * (started, not yet won). Without this, the "abandoned" side of the
+ * commentary-on-vs-off comparison this MVP exists to produce was never
+ * populated at all — every match either completed or vanished with no
+ * record, making the one metric this build order depends on unmeasurable.
+ * Safe to call speculatively (e.g. before starting a fresh match, or on
+ * `beforeunload`) since it no-ops once a game has already been won.
+ */
+function recordAbandonedIfInProgress(): void {
+  if (!game || game.winner) return;
+  recordMatch({
+    commentaryEnabled,
+    result: "abandoned",
+    durationMs: Date.now() - matchStartedAt,
+    timestamp: Date.now(),
+  });
+  renderSessionStats();
+}
+
+function renderSessionStats(): void {
+  el.sessionStats.textContent = summarize();
+}
+
+window.addEventListener("beforeunload", recordAbandonedIfInProgress);
 
 function scheduleBotIfNeeded(): void {
   if (!game || game.winner) return;
@@ -344,6 +411,8 @@ function scheduleBotIfNeeded(): void {
 }
 
 function startNewGame(): void {
+  recordAbandonedIfInProgress(); // catches "New game"/"Rematch" clicked mid-match
+
   const targetScore = Number(el.targetSelect.value) as 61 | 121;
   const mode = el.commentaryModeSelect.value as Mode;
   commentaryEnabled = el.commentaryToggle.checked;
@@ -352,6 +421,7 @@ function startNewGame(): void {
   el.handCount.hidden = true;
   selectedDiscards = [];
   pegStackOwners = [];
+  prevScores = { north: 0, south: 0 };
   matchStartedAt = Date.now();
 
   game = new CribbageGame({ targetScore });
@@ -384,3 +454,4 @@ el.newGame.addEventListener("click", startNewGame);
 el.rematch.addEventListener("click", startNewGame);
 
 render();
+renderSessionStats();

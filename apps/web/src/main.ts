@@ -89,6 +89,7 @@ function initPills(): {
   getSelected: () => string | null;
 } {
   const pills = Array.from(document.querySelectorAll<HTMLButtonElement>(".pill"));
+  const caption = document.getElementById("pills-caption");
   let selected: string | null = null;
 
   pills.forEach((pill) => {
@@ -97,6 +98,7 @@ function initPills(): {
       pills.forEach((p) => p.setAttribute("aria-pressed", "false"));
       pill.setAttribute("aria-pressed", "true");
       selected = pill.dataset.value ?? null;
+      if (caption) caption.textContent = `Selected: ${pill.textContent}`;
     });
   });
 

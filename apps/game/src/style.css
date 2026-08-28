@@ -11,6 +11,7 @@
   --brass: #D9A94C;
   --brass-dim: #8C7139;
   --peg-red: #E08A78;
+  --accent-plum: #A98CD1;
   --rule: rgba(217, 169, 76, 0.16);
 
   --display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
@@ -76,7 +77,9 @@ button { font: inherit; }
 .scoreboard__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 .scoreboard__dot--north { background: var(--brass); }
 .scoreboard__dot--south { background: var(--felt); }
-.scoreboard__score { font-family: var(--display); font-size: 1.8rem; font-variant-numeric: tabular-nums; }
+.scoreboard__score { font-family: var(--display); font-size: 1.8rem; font-variant-numeric: tabular-nums; display: inline-block; }
+@keyframes score-bump { 0% { transform: scale(1); } 40% { transform: scale(1.25); color: var(--peg-red); } 100% { transform: scale(1); } }
+.scoreboard__score--bump { animation: score-bump 0.35s ease-out; }
 .scoreboard__mid { text-align: center; font-family: var(--mono); }
 .scoreboard__target { display: block; font-size: 0.68rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; }
 .scoreboard__count { display: block; font-size: 1.6rem; color: var(--peg-red); font-variant-numeric: tabular-nums; }
@@ -120,7 +123,10 @@ button { font: inherit; }
 .card--owner-north .card__owner { background: var(--brass); }
 .card--owner-south { border-bottom: 3px solid var(--felt); }
 .card--owner-south .card__owner { background: var(--felt); }
-.card--playable { cursor: pointer; border-color: var(--brass); box-shadow: 0 0 0 2px var(--brass), 0 2px 0 rgba(0,0,0,0.25); }
+.card--playable {
+  cursor: pointer; border-color: var(--brass); box-shadow: 0 0 0 2px var(--brass), 0 2px 0 rgba(0,0,0,0.25);
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
 .card--playable:hover:not(:disabled) { transform: translateY(-3px); }
 .card--playable:focus-visible { outline: 2px solid var(--peg-red); outline-offset: 3px; }
 .card--playable:disabled {
@@ -139,9 +145,11 @@ button { font: inherit; }
 
 .hand { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; min-height: 70px; }
 
+@keyframes panel-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .discard-panel, .play-panel, .hand-count, .win-panel {
   background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 1.1rem;
   display: flex; flex-direction: column; align-items: center; gap: 0.9rem; text-align: center;
+  animation: panel-in 0.25s ease-out;
 }
 .discard-panel__hint, .play-panel__hint { color: var(--ink-dim); font-size: 0.92rem; margin: 0; }
 
@@ -157,15 +165,36 @@ button { font: inherit; }
 .btn--ghost:hover { border-color: var(--brass); }
 
 .hand-count__grid { display: flex; gap: 1.4rem; flex-wrap: wrap; justify-content: center; }
-.hand-count__col { text-align: left; min-width: 160px; }
+.hand-count__col { text-align: left; min-width: 200px; }
 .hand-count__col h3 { font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase; color: var(--brass); margin: 0 0 0.4rem; }
 .hand-count__col ul { list-style: none; margin: 0; padding: 0; font-size: 0.85rem; color: var(--ink-dim); }
-.hand-count__col li { margin-bottom: 0.2rem; }
+.hand-count__col li { margin-bottom: 0.5rem; }
+.hand-count__cards { display: flex; gap: 0.25rem; margin-bottom: 0.25rem; }
+.hand-count-card {
+  width: 28px; height: 38px; font-size: 0.7rem; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-2); border: 1px solid #cbbf98;
+}
+.hand-count-card--fifteen { box-shadow: 0 0 0 2px var(--brass); }
+.hand-count-card--pair { box-shadow: 0 0 0 2px var(--peg-red); }
+.hand-count-card--run { box-shadow: 0 0 0 2px var(--felt); }
+.hand-count-card--flush,
+.hand-count-card--nobs,
+.hand-count-card--heels { box-shadow: 0 0 0 2px var(--accent-plum); }
+.hand-count__combo-label { display: block; }
 .hand-count__total { font-family: var(--display); font-size: 1.1rem; color: var(--ink); margin-top: 0.3rem; }
 
 .win-panel h2 { color: var(--brass); font-size: 1.8rem; }
+.win-panel__caption { font-style: italic; color: var(--ink-dim); max-width: 32ch; margin: 0 auto 1rem; }
+.win-panel__caption:empty { display: none; }
 
 .controls { display: flex; gap: 1rem; align-items: flex-end; justify-content: center; flex-wrap: wrap; }
+.controls__hint { flex-basis: 100%; text-align: center; color: var(--ink-faint); font-size: 0.85rem; margin: 0 0 0.2rem; }
+.session-stats {
+  margin: 1.2rem auto 0; max-width: 360px; text-align: center; white-space: pre-wrap;
+  font-family: var(--mono); font-size: 0.75rem; color: var(--ink-faint); line-height: 1.6;
+}
+.session-stats:empty { display: none; }
 .field { display: flex; flex-direction: column; gap: 0.3rem; font-family: var(--mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--brass); }
 .field select {
   background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px; padding: 0.6rem 0.8rem;

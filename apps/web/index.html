@@ -33,13 +33,13 @@
           Provably fair.
         </h1>
         <p class="hero__sub">
-          Two AI announcers call every hand the moment it happens — and can prove,
+          Two AI announcers call every hand the moment it happens. They can also prove,
           mathematically, that they never touched a card to make it exciting.
         </p>
         <div class="hero__actions">
           <a class="btn btn--primary" href="#join">Join the waitlist</a>
           <button class="btn btn--ghost" id="hear-booth" type="button" aria-expanded="false" aria-controls="booth-sample">
-            Hear the booth call a hand
+            Read a sample call
           </button>
         </div>
         <div class="booth-sample" id="booth-sample" hidden>
@@ -139,9 +139,11 @@
               <button type="button" class="pill" data-value="know the basics">Know the basics</button>
               <button type="button" class="pill" data-value="been playing for years">Been playing for years</button>
             </div>
+            <p class="pills__caption" id="pills-caption" aria-live="polite"></p>
           </fieldset>
 
           <button type="submit" class="btn btn--primary btn--block">Join the waitlist</button>
+          <p class="waitlist-form__hint">Submitting opens your email app with a pre-filled message — nothing sends automatically.</p>
           <p class="waitlist-form__status" id="form-status" role="status"></p>
         </form>
       </div>

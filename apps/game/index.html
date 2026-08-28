@@ -74,7 +74,7 @@
     </section>
 
     <section class="discard-panel" id="discard-panel" hidden>
-      <p class="discard-panel__hint">Select two cards for <span id="discard-crib-owner"></span> crib this hand.</p>
+      <p class="discard-panel__hint">Select two cards for <span id="discard-crib-owner"></span> crib this hand — whoever's crib it is scores those cards too.</p>
       <div class="hand hand--selectable" id="discard-hand"></div>
       <button type="button" class="btn" id="discard-confirm" disabled>Send to crib</button>
     </section>
@@ -87,10 +87,12 @@
     <section class="win-panel" id="win-panel" hidden aria-live="assertive">
       <h2 id="win-title">You win</h2>
       <p id="win-detail"></p>
+      <p class="win-panel__caption" id="win-caption"></p>
       <button type="button" class="btn" id="rematch">Rematch</button>
     </section>
 
     <section class="controls" id="start-controls">
+      <p class="controls__hint">One match against a scripted beginner bot. Set commentary above, then pick a length to start.</p>
       <label class="field">
         <span>Target score</span>
         <select id="target-select">
@@ -100,6 +102,7 @@
       </label>
       <button type="button" class="btn btn--primary" id="new-game">New game</button>
     </section>
+    <pre class="session-stats" id="session-stats" aria-live="polite"></pre>
   </main>
 
   <aside class="commentary" id="commentary" aria-live="polite">

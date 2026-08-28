@@ -11,11 +11,22 @@ const TIER_PREFERENCE: Record<Mode, LineVariant["tier"][]> = {
   quiet: ["clean"],
 };
 
+/**
+ * Picks uniformly at random among every variant AT the first tier in the
+ * mode's preference chain that has any matches — not just the first one
+ * authored. Without this, a family with several same-tier variants would
+ * still always render the first one verbatim every time (confirmed
+ * empirically: some high-frequency families repeated the identical line
+ * 15-19 times across a single real match), silently wasting any variety an
+ * author adds unless the selection itself also varies.
+ */
 export function pickVariant(family: ContentFamily, mode: Mode): LineVariant | null {
   if (family.variants.length === 0) return null;
   for (const tier of TIER_PREFERENCE[mode]) {
-    const match = family.variants.find((v) => v.tier === tier);
-    if (match) return match;
+    const matches = family.variants.filter((v) => v.tier === tier);
+    if (matches.length > 0) {
+      return matches[Math.floor(Math.random() * matches.length)];
+    }
   }
   return family.variants[0];
 }
